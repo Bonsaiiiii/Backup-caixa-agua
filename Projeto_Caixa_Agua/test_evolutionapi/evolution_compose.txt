@@ -1,0 +1,4 @@
+docker network create evolution-net
+docker compose -f evolutionapi.yaml up -d
+docker compose -f postgres.yaml up -d
+docker compose -f redis.yaml up -d

@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  evolution-api:
+    container_name: evolution_api
+    image: evoapicloud/evolution-api:v2.3.6
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - evolution_instances:/evolution/instances
+    networks:
+      - evolution-net
+
+volumes:
+  evolution_instances:
+
+networks:
+  evolution-net:
+    external: true

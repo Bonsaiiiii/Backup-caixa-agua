@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/bootstrap.min.css">
+	<script src="/jquery.min.js"></script>
+	<script src="/bootstrap.min.js"></script>
+	<style>
+		.loader {
+			display: inline-block;
+			border: 16px solid #f3f3f3;
+			border-radius: 50%;
+			border-top: 16px solid #3498db;
+			width: 10px;
+			height: 1px;
+			-webkit-animation: spin 2s linear infinite;
+			animation: spin 2s linear infinite;
+		}
+
+		@-webkit-keyframes spin {
+			0% { -webkit-transform: rotate(0deg); }
+			100% { -webkit-transform: rotate(360deg); }
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+
+		.form-control {
+			width: 200px;
+			display: inline-block;
+			height: 20px;
+		}
+
+		.btn.btn-secondary {
+			width: 100px;
+			height: 15px;
+			text-align: center;
+			line-height: 0;
+		}
+
+		#divTitulo {
+			display: flex;
+			align-items: center;
+		}
+
+		.text-right {
+			position: absolute;
+			top: 1;
+			right: 0;
+		}
+
+		.config-section {
+			background-color: #f8f9fa;
+			border: 1px solid #dee2e6;
+			border-radius: 8px;
+			padding: 20px;
+			margin: 15px 0;
+		}
+
+		.config-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 15px;
+			padding: 10px;
+			background-color: white;
+			border-radius: 5px;
+		}
+
+		.config-label {
+			font-weight: 500;
+			margin-right: 15px;
+		}
+
+		.form-switch {
+			padding-left: 2.5em;
+		}
+
+		.priority-btn-group {
+			display: flex;
+			gap: 10px;
+		}
+
+		.priority-btn {
+			min-width: 100px;
+		}
+
+		.priority-btn.active {
+			background-color: #0d6efd;
+			color: white;
+		}
+
+		.altura-input {
+			width: 150px;
+			height: 35px;
+		}
+
+		.btn-salvar-config {
+			width: 100%;
+			height: 50px;
+			font-size: 18px;
+			font-weight: bold;
+		}
+	</style>
+</head>
+
+<body style="margin: 1px;" class="">
+
+	<!-- Seção de Configurações -->
+	<div class="config-section">
+		<h3 class="mb-3">Configurações do Sistema</h3>
+
+		<div class="config-row">
+			<span class="config-label">Habilitar GSM</span>
+			<div class="form-check form-switch">
+				<input class="form-check-input" type="checkbox" id="gsmEnabled" checked>
+			</div>
+		</div>
+		
+		<div class="config-row">
+			<span class="config-label">Habilitar WiFi</span>
+			<div class="form-check form-switch">
+				<input class="form-check-input" type="checkbox" id="wifiEnabled">
+			</div>
+		</div>
+
+		<div class="config-row">
+			<span class="config-label">Altura da Caixa D'água (cm)</span>
+			<input type="number" class="form-control altura-input" id="alturaCaixa" placeholder="Ex: 200" min="0" step="1">
+		</div>
+
+		<div class="config-row">
+			<span class="config-label">Prioridade de Conexão</span>
+			<div class="priority-btn-group">
+				<button class="btn btn-outline-primary priority-btn active" id="prioridadeGSM" onclick="setPrioridade('gsm')">GSM</button>
+				<button class="btn btn-outline-primary priority-btn" id="prioridadeWiFi" onclick="setPrioridade('wifi')">WiFi</button>
+			</div>
+		</div>
+
+		<div class="config-row">
+			<button class="btn btn-success btn-salvar-config" onclick="salvarConfiguracao()">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16" style="margin-right: 10px;">
+					<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+					<path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+				</svg>
+				Salvar Configurações
+			</button>
+		</div>
+	</div>
+
+	<div id="divTitulo">
+		<button class="btn btn-primary" id="reload" type="button"
+			style="width: 200px;height: 48px;padding: 1px;margin: 2px;margin-bottom: 10px;">Procurar Redes
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"
+				class="bi bi-arrow-clockwise" style="height: 40px;width: 40px;padding: 4px;">
+				<path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"></path>
+				<path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"></path>
+			</svg>
+		</button>
+		<span class="spinner-border" role="status" id="spinner-reload" style="display:none;"></span>
+		<button class="btn btn-success" id="usarGSMBtn" type="button"
+			style="width: 200px; height: 48px; padding: 1px; margin: 2px; margin-bottom: 10px;"
+			onclick="usarGSM()">Testar GSM</button>
+		<h4 id="mensagem-wifi" class="text-right"></h4>
+	</div>
+
+	<div class="text-center my-4">
+		<h1 class="display-4">Conectar-se à rede</h1>
+	</div>
+
+	<div class="table-responsive" id="divTable">
+		<table class="table table-hover table-bordered" style="--bs-table-hover-bg: rgba(0, 0, 0, 0.185);">
+			<thead class="table-light">
+				<tr>
+					<th style="position: sticky; top: 0; z-index: 2;">SSID</th>
+					<th style="position: sticky; top: 0; z-index: 2;">Sinal</th>
+					<th style="position: sticky; top: 0; z-index: 2;">Conectar</th>
+				</tr>
+			</thead>
+			<tbody id="elementoPai">
+				<tr>
+					<td>SSID</td>
+					<td>RSSI</td>
+					<td><button class="btn btn-primary" id="linhaExemplo" type="button" data-bs-toggle="modal"
+							data-bs-target="#modal-info" data-bs-ssid="SSID" data-bs-bssid="BSSID" data-bs-canal="CANAL"
+							data-bs-encriptacao="ENCRIPTAÇÃO" data-bs-oculto="SSID_OCULTO">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none">
+								<path fill-rule="evenodd" clip-rule="evenodd"
+									d="M5 15C6.65685 15 8 13.6569 8 12C8 10.3431 6.65685 9 5 9C3.34315 9 2 10.3431 2 12C2 13.6569 3.34315 15 5 15ZM5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z"
+									fill="currentColor"></path>
+								<path fill-rule="evenodd" clip-rule="evenodd"
+									d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15ZM12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"
+									fill="currentColor"></path>
+								<path fill-rule="evenodd" clip-rule="evenodd"
+									d="M22 12C22 13.6569 20.6569 15 19 15C17.3431 15 16 13.6569 16 12C16 10.3431 17.3431 9 19 9C20.6569 9 22 10.3431 22 12ZM20 12C20 12.5523 19.5523 13 19 13C18.4477 13 18 12.5523 18 12C18 11.4477 18.4477 11 19 11C19.5523 11 20 11.4477 20 12Z"
+									fill="currentColor"></path>
+							</svg>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Modal de Conexão WiFi -->
+	<div class="modal fade" role="dialog" tabindex="-1" id="modal-info">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">Mais dados sobre a rede</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="table-responsive">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Rede</th>
+									<th></th>
+									<th>Senha</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td id="ssid">-------</td>
+									<td></td>
+									<td>
+										<form class="text-center" onsubmit="imprimeLogin(); return false;">
+											<input class="form-control" type="text" id="senhaInput" name="senha" placeholder="12345">
+											<button class="btn btn-secondary" type="submit" id="send_cred">Enviar</button>
+											<span class="spinner-border" role="status" id="spinner"></span>
+											<div id="wifi-status-message"></div>
+										</form>
+									</td>
+								</tr>
+							</tbody>
+							<thead>
+								<tr>
+									<th>BSSID (Mac)</th>
+									<th>Canal WiFi</th>
+									<th>Tipo Encriptação</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td id="bssid">--:--:--:--:--:--<br></td>
+									<td id="canal">--</td>
+									<td id="encriptacao">-------</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Fechar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Alerta -->
+	<div class="modal fade" role="dialog" tabindex="-1" id="modal-alerta">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header bg-warning">
+					<h4 class="modal-title" id="headerModalAlerta">Atenção</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<p id="bodyModalAlerta">Mensagem de alerta</p>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Fechar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		var liberacao;
+		var qtdTentativas = 0;
+		var spinnerReload;
+		var mensagemWifiModal;
+		var showSSID;
+		var redeVálida;
+		var login;
+		var mensagemWifi;
+		var prioridadeAtual = 'wifi';
+
+		function setPrioridade(tipo) {
+			prioridadeAtual = tipo;
+			const wifiBtn = document.getElementById('prioridadeWiFi');
+			const gsmBtn = document.getElementById('prioridadeGSM');
+			
+			if (tipo === 'wifi') {
+				wifiBtn.classList.add('active');
+				gsmBtn.classList.remove('active');
+			} else {
+				gsmBtn.classList.add('active');
+				wifiBtn.classList.remove('active');
+			}
+		}
+
+		function validarConfiguracao() {
+			const wifiEnabled = document.getElementById('wifiEnabled').checked;
+			const gsmEnabled = document.getElementById('gsmEnabled').checked;
+			const alturaCaixa = document.getElementById('alturaCaixa').value;
+
+			const erros = [];
+
+			if (!wifiEnabled && !gsmEnabled) {
+				erros.push('Você deve habilitar pelo menos uma opção de conexão (WiFi ou GSM).');
+			}
+
+			if (!alturaCaixa || alturaCaixa <= 0) {
+				erros.push('Por favor, informe a altura da caixa d\'água.');
+			}
+
+			return erros;
+		}
+
+		function salvarConfiguracao() {
+			const erros = validarConfiguracao();
+
+			if (erros.length > 0) {
+				document.getElementById('headerModalAlerta').innerText = 'Dados Incompletos';
+				document.getElementById('bodyModalAlerta').innerHTML = erros.map(e => `<p>• ${e}</p>`).join('');
+				var alertModal = new bootstrap.Modal(document.getElementById('modal-alerta'));
+				alertModal.show();
+				return;
+			}
+
+			const dados = {
+				wifiEnabled: document.getElementById('wifiEnabled').checked,
+				gsmEnabled: document.getElementById('gsmEnabled').checked,
+				alturaCaixa: parseInt(document.getElementById('alturaCaixa').value),
+				prioridade: prioridadeAtual
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/config', true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			
+			xhr.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					document.getElementById('headerModalAlerta').innerText = 'Sucesso';
+					document.getElementById('bodyModalAlerta').innerHTML = '<p style="color: green;">Configurações salvas com sucesso!</p>';
+					var alertModal = new bootstrap.Modal(document.getElementById('modal-alerta'));
+					alertModal.show();
+				} else if (this.readyState == 4 && this.status != 200) {
+					document.getElementById('headerModalAlerta').innerText = 'Erro';
+					document.getElementById('bodyModalAlerta').innerHTML = '<p style="color: red;">Erro ao salvar configurações. Tente novamente.</p>';
+					var alertModal = new bootstrap.Modal(document.getElementById('modal-alerta'));
+					alertModal.show();
+				}
+			};
+
+			xhr.send(JSON.stringify(dados));
+		}
+
+		function imprimeLogin() {
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/', true);
+			xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			var senha = document.getElementById('senhaInput').value;
+			var login = $('#ssid').html();
+			showSSID = $('#ssid').html();
+
+			xhr.onreadystatechange = function () {
+				if (this.readyState == 4 && this.status == 200) {
+					alert("Requisição enviada com sucesso");
+					document.getElementById("send_cred").setAttribute('disabled', '');
+					setTimeout(function () {
+						document.getElementById("send_cred").removeAttribute('disabled');
+					}, 8000);
+				} else if (this.readyState == 4 && this.status != 200) {
+					alert("Requisição não foi enviada, pois houve alguma falha");
+				}
+			};
+			xhr.send("ssid=" + login + "&senha=" + senha);
+		}
+
+		const xmlhttp_wifis = new XMLHttpRequest();
+		xmlhttp_wifis.onreadystatechange = function () {
+			if (this.status === 200) {
+				const myObj_wifis = JSON.parse(this.responseText);
+				const mensagemWifiModal = $("#wifi-status-message");
+				const mensagemWifi = $("#mensagem-wifi");
+				const inputSsids = [];
+				const inputSenhas = [];
+				const ssid = document.getElementById("ssidInput");
+				const senha = document.getElementById("senhaInput");
+				if (myObj_wifis.NoSsid) {
+					mensagemWifiModal.html("<p style='color: red;'>Rede não encontrada, reconecte na rede e verifique as credenciais</p>");
+					mensagemWifi.html("<p style='color: gray;'>Credenciais de rede não encontradas</p>")
+				} else if (myObj_wifis.SenhaIncorreta) {
+					mensagemWifiModal.html("<p style='color: red;'>Senha Incorreta </p>");
+					mensagemWifi.html("<p style='color: gray;'>Não conectado ao WiFi</p>")
+				} else if (myObj_wifis.Espera) {
+					mensagemWifiModal.html("<p style='color: red;'>Tempo de espera excedeu, tente novamente </p>");
+					mensagemWifi.html("<p style='color: gray;'>Não conectado ao WiFi</p>")
+				} else if (myObj_wifis.Conectado) {
+					mensagemWifiModal.html("<p style='color: green;'>Conectado à rede Wi-Fi: " + showSSID + "</p>");
+					mensagemWifi.html("<p style='color: green;'>Conectado à rede Wi-Fi: " + showSSID + "</p>")
+					inputSsids.push(ssid.value);
+					inputSenhas.push(senha.value);
+					console.log(inputSsids, inputSenhas);
+				} else {
+					mensagemWifiModal.html("<p>Verificando status da conexão Wi-Fi...</p>");
+					mensagemWifi.html("<p></p>")
+				}
+			} else {
+				console.error("Error fetching Wi-Fi status:", this.statusText);
+			}
+		};
+
+		xmlhttp_wifis.open("GET", "wifi_status.json");
+		xmlhttp_wifis.send();
+
+		$(document).ready(function () {
+			$('#spinner').hide();
+			$('#send_cred').on('click', function (event) {
+				$('#spinner').show();
+				setTimeout(function () {
+					$("#wifi-status-message").html(mensagemWifiModal);
+					$("#mensagem-wifi").html(mensagemWifi);
+					$('#spinner').hide();
+					xmlhttp_wifis.open("GET", "wifi_status.json");
+					xmlhttp_wifis.send();
+				}, 8000);
+			});
+		});
+
+		function main() {
+			liberacao = true;
+			let divTable = document.getElementById("divTable");
+			let divTitulo = document.getElementById("divTitulo");
+
+			let body = document.body;
+			let html = document.documentElement;
+			let heightScreen = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+
+			divTable.style.height = heightScreen - (divTitulo.offsetHeight + 16 + 2) + "px";
+
+			var modalInfo = document.getElementById('modal-info');
+			modalInfo.addEventListener('show.bs.modal', function (event) {
+				let button = event.relatedTarget;
+
+				let ssid = decodeURI(button.getAttribute('data-bs-ssid'));
+				let bssid = decodeURI(button.getAttribute('data-bs-bssid'));
+				let canal = decodeURI(button.getAttribute('data-bs-canal'));
+				let encriptacao = decodeURI(button.getAttribute('data-bs-encriptacao'));
+
+				let modalTitle = modalInfo.querySelector('.modal-title');
+				let modalBssid = modalInfo.querySelector('.modal-body #bssid');
+				let modalCanal = modalInfo.querySelector('.modal-body #canal');
+				let modalEncriptacao = modalInfo.querySelector('.modal-body #encriptacao');
+				let modalSsid = modalInfo.querySelector('.modal-body #ssid');
+
+				modalTitle.textContent = "Mais dados sobre a rede " + ssid;
+				modalBssid.textContent = bssid;
+				modalCanal.textContent = canal;
+				modalEncriptacao.textContent = encriptacao;
+				modalSsid.textContent = ssid;
+			});
+
+			liberacao = false;
+			document.getElementById("reload").setAttribute('disabled', '');
+			document.getElementById("spinner-reload").style.display = '';
+			removeTodasLinhaTable();
+			spinnerReload = false;
+		}
+
+		function adicionaLinhaTable(ssid, rssi, bssid, canal, encriptacao) {
+			let elementoPai = document.getElementById("elementoPai");
+			elementoPai.innerHTML += `
+			<tr>
+				<td>${ssid}</td>
+				<td>
+					${rssi >= -70 ? `<svg width="40" height="40">
+		<rect x="26" y="5" width="5" height="25" fill="#000000" />
+		<rect x="19" y="10" width="5" height="20" fill="#000000" />
+		<rect x="12" y="15" width="5" height="15" fill="#000000" />
+		<rect x="5" y="25" width="5" height="5" fill="#000000" />
+		</svg>` : ''}  
+					${rssi < -70 && rssi >= -85 ? `<svg width="40" height="40">
+		<rect x="26" y="5" width="5" height="25" fill="#abacac" />
+		<rect x="19" y="10" width="5" height="20" fill="#000000" />
+		<rect x="12" y="15" width="5" height="15" fill="#000000" />
+		<rect x="5" y="25" width="5" height="5" fill="#000000" />
+		</svg>` : ''}  
+					${rssi <= -86 && rssi >= -100 ? `<svg width="40" height="40">
+		<rect x="26" y="5" width="5" height="25" fill="#abacac" />
+		<rect x="19" y="10" width="5" height="20" fill="#abacac" />
+		<rect x="12" y="15" width="5" height="15" fill="#000000" />
+		<rect x="5" y="25" width="5" height="5" fill="#000000" />
+		</svg>` : ''} 
+					${rssi <= -101 && rssi > -110 ? `<svg width="40" height="40">
+		<rect x="26" y="5" width="5" height="25" fill="#abacac" />
+		<rect x="19" y="10" width="5" height="20" fill="#abacac" />
+		<rect x="12" y="15" width="5" height="15" fill="#abacac" />
+		<rect x="5" y="25" width="5" height="5" fill="#000000" />
+		</svg>` : ''}
+					${rssi <= -110 ? `<svg width="40" height="40">
+		<rect x="26" y="5" width="5" height="25" fill="#abacac" />
+		<rect x="19" y="10" width="5" height="20" fill="#abacac" />
+		<rect x="12" y="15" width="5" height="15" fill="#abacac" />
+		<rect x="5" y="25" width="5" height="5" fill="#abacac" />
+		</svg>` : ''} 					
+				</td>
+				<td>
+					<button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal-info" data-bs-ssid=${encodeURI(ssid)} data-bs-bssid=${encodeURI(bssid)} data-bs-canal=${encodeURI(canal)} data-bs-encriptacao=${encodeURI(encriptacao)}>
+						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none">
+							<path fill-rule="evenodd" clip-rule="evenodd" d="M5 15C6.65685 15 8 13.6569 8 12C8 10.3431 6.65685 9 5 9C3.34315 9 2 10.3431 2 12C2 13.6569 3.34315 15 5 15ZM5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z" fill="currentColor"></path>
+							<path fill-rule="evenodd" clip-rule="evenodd" d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15ZM12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="currentColor"></path>
+							<path fill-rule="evenodd" clip-rule="evenodd" d="M22 12C22 13.6569 20.6569 15 19 15C17.3431 15 16 13.6569 16 12C16 10.3431 17.3431 9 19 9C20.6569 9 22 10.3431 22 12ZM20 12C20 12.5523 19.5523 13 19 13C18.4477 13 18 12.5523 18 12C18 11.4477 18.4477 11 19 11C19.5523 11 20 11.4477 20 12Z" fill="currentColor"></path>
+						</svg>
+					</button>
+				</td>
+			</tr>
+			`;
+		}
+
+		function removeTodasLinhaTable() {
+			let elementoPai = document.getElementById("elementoPai");
+			elementoPai.innerHTML = "";
+		}
+
+		function getContent(url) {
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', url, true);
+			xhr.onload = function (e) {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						if (xhr.responseText == "[]" || xhr.responseText == undefined) {
+							qtdTentativas++;
+							if (qtdTentativas < 5) {
+								liberacao = true;
+							}
+						} else {
+							removeTodasLinhaTable();
+							qtdTentativas = 0;
+							document.getElementById("reload").removeAttribute('disabled');
+							document.getElementById("spinner-reload").style.display = 'none';
+							spinnerReload = true;
+
+							let json = xhr.responseText;
+							json = JSON.parse(json);
+							let tempo = new Date(Date.now());
+							for (var i = 0; i < json.length; i++) {
+								let secure = json[i].secure;
+
+								switch (secure) {
+									case 0: secure = "Aberta"; break;
+									case 1: secure = "WEP"; break;
+									case 2: secure = "WPA_PSK"; break;
+									case 3: secure = "WPA2_PSK"; break;
+									case 4: secure = "WPA_WPA2_PSK"; break;
+									case 5: secure = "WPA2_ENTERPRISE"; break;
+									case 6: secure = "WIFI_AUTH_MAX"; break;
+								}
+
+								adicionaLinhaTable(String(json[i].ssid), String(json[i].rssi), String(json[i].bssid), String(json[i].channel), secure);
+							}
+						}
+					} else {
+						qtdTentativas++;
+						if (qtdTentativas < 5) {
+							liberacao = true;
+						}
+					}
+					if (qtdTentativas >= 5) {
+						liberacao = false;
+						document.getElementById('headerModalAlerta').innerText = "Erro: Requisição falha";
+						document.getElementById('bodyModalAlerta').innerText = "A requisição HTTP falhou. Tente novamente após verificar a conexão elétrica do ESP32";
+						var alertModal = new bootstrap.Modal(document.getElementById('modal-alerta'));
+						alertModal.show();
+						qtdTentativas = 0;
+						document.getElementById("reload").removeAttribute('disabled');
+						document.getElementById("spinner-reload").style.display = 'none';
+						removeTodasLinhaTable();
+						spinnerReload = true;
+					}
+				}
+			};
+			xhr.onerror = function (e) {
+				liberacao = false;
+				document.getElementById('headerModalAlerta').innerText = "Erro: Requisição falha";
+				document.getElementById('bodyModalAlerta').innerText = "A requisição HTTP falhou. Tente novamente após verificar a conexão elétrica do ESP32";
+				var alertModal = new bootstrap.Modal(document.getElementById('modal-alerta'));
+				alertModal.show();
+				qtdTentativas = 0;
+				document.getElementById("reload").removeAttribute('disabled');
+				document.getElementById("spinner-reload").style.display = 'none';
+				removeTodasLinhaTable();
+				spinnerReload = true;
+			};
+			xhr.send(null);
+		}
+
+		setInterval(verificacao, 3000);
+
+		document.getElementById("reload").addEventListener('click', function (event) {
+			let rowCounter = 0;
+			document.getElementById("reload").setAttribute('disabled', '');
+			document.getElementById("spinner-reload").style.display = '';
+			liberacao = true;
+			spinnerReload = false;
+		});
+
+		function verificacao() {
+			if (spinnerReload == false) {
+				liberacao = true;
+			}
+			if (liberacao == true && $.fn.modal) {
+				liberacao = false;
+				preencheTable();
+			}
+		}
+
+		function preencheTable() {
+			getContent("/scan");
+		}
+
+		function usarGSM() {
+			fetch("/GSM", {
+				method: "POST"
+			})
+			.then(response => {
+				if (response.ok) {
+					console.log("GSM ativado com sucesso.");
+				} else {
+					console.error("Erro ao ativar GSM.");
+				}
+			})
+			.catch(error => {
+				console.error("Erro na requisição:", error);
+			});
+		}
+
+		window.onload = main();
+	</script>
+</body>
+</html>
